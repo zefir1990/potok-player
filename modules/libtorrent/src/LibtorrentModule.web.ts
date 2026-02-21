@@ -11,9 +11,10 @@ class LibtorrentModule extends NativeModule<LibtorrentModuleEvents> {
       throw new Error('WebTorrent cannot be run outside of a browser environment');
     }
 
-    // Lazy load webtorrent to avoid node built-in issues on native if it accidentally gets bundled
-    // Using the pre-built minified version prevents metro/webpack from trying to resolve Node.js core polyfills.
-    const WebTorrent = require('webtorrent/dist/webtorrent.min.js');
+    // Load the minified webtorrent module to bypass node polyfill requirements.
+    // UMD bundle will return the constructor.
+    const WT = require('webtorrent/dist/webtorrent.min.js');
+    const WebTorrent = WT.default || WT;
     if (!this.client) {
       this.client = new WebTorrent();
     }
