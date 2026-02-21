@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android", "web"],
+  "apple": {
+    "modules": ["LibtorrentModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.libtorrent.LibtorrentModule"]
+  }
+}
