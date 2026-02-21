@@ -8,6 +8,7 @@ export default function App() {
   const [progress, setProgress] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
   const [files, setFiles] = useState([]);
+  const [videoUrl, setVideoUrl] = useState(null);
 
   const [magnetLink, setMagnetLink] = useState('magnet:?xt=urn:btih:08ada5a7a6183aae1e09d831df6748d566095a10&dn=Sintel&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com&ws=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2F&xs=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2Fsintel.torrent');
 
@@ -51,9 +52,23 @@ export default function App() {
       setIsDownloading(false);
       setStatus('Stopped');
       setFiles([]);
+      setVideoUrl(null);
     } catch (e) {
       console.error(e);
       setStatus('Error stopping: ' + e.message);
+    }
+  };
+
+  const handlePlay = async (file) => {
+    if (file.downloaded < file.length) {
+      alert(`Please wait for ${file.name} to finish downloading first!`);
+      return;
+    }
+    try {
+      const url = await TorrentApi.getFileUrl(file.name);
+      setVideoUrl(url);
+    } catch (err) {
+      alert("Failed to load video: " + err.message);
     }
   };
 
@@ -85,10 +100,25 @@ export default function App() {
         <View style={styles.filesContainer}>
           <Text style={styles.filesTitle}>Torrent Contents:</Text>
           {files.map((file, i) => (
-            <Text key={i} style={styles.fileItem}>
-              📄 {file.name} - {(file.downloaded / 1024 / 1024).toFixed(2)} MB / {(file.length / 1024 / 1024).toFixed(2)} MB
-            </Text>
+            <View key={i} style={styles.fileRow}>
+              <Text style={styles.fileItem}>
+                📄 {file.name} - {(file.downloaded / 1024 / 1024).toFixed(2)} MB / {(file.length / 1024 / 1024).toFixed(2)} MB
+              </Text>
+              {file.name.endsWith('.mp4') && (
+                <Button
+                  title="Play"
+                  onPress={() => handlePlay(file)}
+                  disabled={file.downloaded < file.length}
+                />
+              )}
+            </View>
           ))}
+        </View>
+      )}
+
+      {videoUrl && (
+        <View style={styles.videoContainer}>
+          <video src={videoUrl} controls autoPlay style={{ width: '100%', maxWidth: 500 }} />
         </View>
       )}
     </View>
@@ -135,9 +165,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 8,
   },
+  fileRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    paddingBottom: 4
+  },
   fileItem: {
     fontSize: 14,
-    marginBottom: 4,
-    color: '#333'
+    color: '#333',
+    flex: 1,
+  },
+  videoContainer: {
+    marginTop: 20,
+    alignItems: 'center',
   }
 });

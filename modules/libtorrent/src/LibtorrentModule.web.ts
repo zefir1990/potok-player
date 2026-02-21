@@ -107,6 +107,25 @@ class LibtorrentModule extends NativeModule<LibtorrentModuleEvents> {
     }
     return 'Stopped';
   }
+
+  async getFileUrl(fileName: string): Promise<string> {
+    if (!this.client || this.client.torrents.length === 0) {
+      throw new Error("No active torrent");
+    }
+    const torrent = this.client.torrents[0];
+    const file = torrent.files.find((f: any) => f.name === fileName);
+    if (!file) throw new Error("File not found");
+
+    return new Promise((resolve, reject) => {
+      file.getBlobURL((err: Error | null, url: string | undefined) => {
+        if (err || !url) {
+          reject(err || new Error("Failed to create blob URL"));
+        } else {
+          resolve(url);
+        }
+      });
+    });
+  }
 };
 
 export default registerWebModule(LibtorrentModule, 'LibtorrentModule');

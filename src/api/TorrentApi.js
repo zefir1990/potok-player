@@ -30,6 +30,18 @@ class TorrentApi {
     }
 
     /**
+     * Retrieves the blob URL for a specific downloaded file (Web WebTorrent only).
+     * @param {string} fileName The name of the file
+     * @returns {Promise<string>}
+     */
+    async getFileUrl(fileName) {
+        if (!LibtorrentModule.getFileUrl) {
+            throw new Error("getFileUrl is not supported on this platform.");
+        }
+        return await LibtorrentModule.getFileUrl(fileName);
+    }
+
+    /**
      * Subscribes to torrent progress events.
      *
      * @param {function} callback A callback function receiving progress events `(event: { progress: number, state: string })`
