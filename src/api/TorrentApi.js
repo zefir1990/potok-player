@@ -1,8 +1,4 @@
 import LibtorrentModule from '../../modules/libtorrent';
-import { NativeModulesProxy, EventEmitter } from 'expo-modules-core';
-
-// The module's typed events can be listened to via an EventEmitter
-const emitter = new EventEmitter(LibtorrentModule ?? NativeModulesProxy.Libtorrent);
 
 class TorrentApi {
     /**
@@ -28,7 +24,7 @@ class TorrentApi {
      * @returns {object} A subscription object with a `.remove()` method.
      */
     addProgressListener(callback) {
-        return emitter.addListener('onTorrentProgress', callback);
+        return LibtorrentModule.addListener('onTorrentProgress', callback);
     }
 }
 
