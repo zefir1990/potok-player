@@ -126,6 +126,46 @@ class LibtorrentModule extends NativeModule<LibtorrentModuleEvents> {
       });
     });
   }
+
+  async streamToElement(fileName: string, elementId: string): Promise<string> {
+    if (!this.client || this.client.torrents.length === 0) {
+      throw new Error("No active torrent");
+    }
+    const torrent = this.client.torrents[0];
+    const file = torrent.files.find((f: any) => f.name === fileName);
+    if (!file) throw new Error("File not found");
+
+    return new Promise((resolve, reject) => {
+      try {
+        console.log(`[LibtorrentModule.web.ts] Wiring stream for ${fileName} to #${elementId}`);
+        // Polyfill process.nextTick and setImmediate for readable-stream in render-media/videostream
+        if (typeof process === 'undefined') {
+          (window as any).process = { nextTick: (cb: any) => setTimeout(cb, 0) };
+        } else if (!process.nextTick) {
+          (process as any).nextTick = (cb: any) => setTimeout(cb, 0);
+        }
+        if (typeof setImmediate === 'undefined') {
+          (window as any).setImmediate = (cb: any) => setTimeout(cb, 0);
+        }
+
+        const renderMedia = require('render-media');
+        const elem = document.getElementById(elementId);
+        if (!elem) throw new Error(`HTML element #${elementId} not found`);
+
+        renderMedia.render(file, elem, { autoplay: true, controls: true }, (err: Error | null) => {
+          if (err) {
+            console.error('[LibtorrentModule.web.ts] Stream render error:', err);
+            reject(err);
+          } else {
+            console.log(`[LibtorrentModule.web.ts] Stream wired to #${elementId} successfully`);
+            resolve("Stream started");
+          }
+        });
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
 };
 
 export default registerWebModule(LibtorrentModule, 'LibtorrentModule');

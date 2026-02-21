@@ -42,6 +42,19 @@ class TorrentApi {
     }
 
     /**
+     * Wires an active WebTorrent download chunk stream directly to a DOM Element.
+     * @param {string} fileName The name of the file
+     * @param {string} elementId The HTML ID of the component to mount into
+     * @returns {Promise<string>}
+     */
+    async streamToElement(fileName, elementId) {
+        if (!LibtorrentModule.streamToElement) {
+            throw new Error("streamToElement is not supported on this platform.");
+        }
+        return await LibtorrentModule.streamToElement(fileName, elementId);
+    }
+
+    /**
      * Subscribes to torrent progress events.
      *
      * @param {function} callback A callback function receiving progress events `(event: { progress: number, state: string })`

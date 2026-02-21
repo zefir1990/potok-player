@@ -17,6 +17,7 @@
     "react-native": "0.81.5",
     "react-native-paper": "4.9.2",
     "react-native-web": "^0.21.0",
+    "render-media": "^4.1.0",
     "stream-http": "^3.2.0",
     "webtorrent": "^2.8.5"
   },

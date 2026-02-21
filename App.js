@@ -8,7 +8,7 @@ export default function App() {
   const [progress, setProgress] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
   const [files, setFiles] = useState([]);
-  const [videoUrl, setVideoUrl] = useState(null);
+  const [streamingFile, setStreamingFile] = useState(null);
 
   const [magnetLink, setMagnetLink] = useState('magnet:?xt=urn:btih:08ada5a7a6183aae1e09d831df6748d566095a10&dn=Sintel&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com&ws=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2F&xs=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2Fsintel.torrent');
 
@@ -52,7 +52,7 @@ export default function App() {
       setIsDownloading(false);
       setStatus('Stopped');
       setFiles([]);
-      setVideoUrl(null);
+      setStreamingFile(null);
     } catch (e) {
       console.error(e);
       setStatus('Error stopping: ' + e.message);
@@ -60,15 +60,21 @@ export default function App() {
   };
 
   const handlePlay = async (file) => {
-    if (file.downloaded < file.length) {
-      alert(`Please wait for ${file.name} to finish downloading first!`);
-      return;
-    }
     try {
-      const url = await TorrentApi.getFileUrl(file.name);
-      setVideoUrl(url);
+      setStreamingFile(file.name);
+
+      // Give React a few milliseconds to mount the <video> element to the DOM
+      setTimeout(async () => {
+        try {
+          await TorrentApi.streamToElement(file.name, 'torrent-video-player');
+        } catch (streamErr) {
+          alert("Failed to stream video: " + streamErr.message);
+          setStreamingFile(null);
+        }
+      }, 100);
     } catch (err) {
-      alert("Failed to load video: " + err.message);
+      alert("Failed to initialize stream: " + err.message);
+      setStreamingFile(null);
     }
   };
 
@@ -106,9 +112,8 @@ export default function App() {
               </Text>
               {file.name.endsWith('.mp4') && (
                 <Button
-                  title="Play"
+                  title="Stream"
                   onPress={() => handlePlay(file)}
-                  disabled={file.downloaded < file.length}
                 />
               )}
             </View>
@@ -116,9 +121,10 @@ export default function App() {
         </View>
       )}
 
-      {videoUrl && (
+      {streamingFile && (
         <View style={styles.videoContainer}>
-          <video src={videoUrl} controls autoPlay style={{ width: '100%', maxWidth: 500 }} />
+          <Text style={{ marginBottom: 10, fontWeight: 'bold' }}>Live Streaming: {streamingFile}</Text>
+          <video id="torrent-video-player" controls autoPlay style={{ width: '100%', maxWidth: 500 }} />
         </View>
       )}
     </View>

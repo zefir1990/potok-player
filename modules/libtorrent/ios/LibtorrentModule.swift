@@ -23,5 +23,13 @@ public class LibtorrentModule: Module {
       // TODO: Implement native libtorrent cancellation for iOS
       return "Stopped"
     }
+
+    AsyncFunction("getFileUrl") { (fileName: String) -> String in
+      return ""
+    }
+
+    AsyncFunction("streamToElement") { (fileName: String, elementId: String) -> String in
+      return ""
+    }
   }
 }

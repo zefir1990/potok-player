@@ -58,5 +58,13 @@ class LibtorrentModule : Module() {
       // TODO: Implement actual session termination for Android
       "Stopped"
     }
+
+    AsyncFunction("getFileUrl") { fileName: String ->
+      ""
+    }
+
+    AsyncFunction("streamToElement") { fileName: String, elementId: String ->
+      ""
+    }
   }
 }
