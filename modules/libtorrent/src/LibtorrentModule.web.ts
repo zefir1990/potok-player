@@ -20,10 +20,18 @@ class LibtorrentModule extends NativeModule<LibtorrentModuleEvents> {
     }
 
     return new Promise((resolve, reject) => {
+      console.log(`[LibtorrentModule.web.ts] download() called with magnetUri: ${magnetUri}`);
       this.emit('onTorrentProgress', { progress: 0, state: 'Starting WebTorrent...' });
 
+      console.log('[LibtorrentModule.web.ts] Calling webtorrent client.add()...');
       this.client.add(magnetUri, (torrent: any) => {
+        console.log(`[LibtorrentModule.web.ts] Torrent added. Name: ${torrent.name}, InfoHash: ${torrent.infoHash}`);
+
+        torrent.on('warning', (err: Error) => {
+          console.warn('[LibtorrentModule.web.ts] Torrent warning:', err);
+        });
         torrent.on('download', (bytes: number) => {
+          console.log(`[LibtorrentModule.web.ts] Downloaded chunk of ${bytes} bytes. Total Progress: ${(torrent.progress * 100).toFixed(2)}%, Speed: ${(torrent.downloadSpeed / 1024 / 1024).toFixed(2)} MB/s`);
           this.emit('onTorrentProgress', {
             progress: torrent.progress * 100,
             state: `Downloading (${(torrent.downloadSpeed / 1024 / 1024).toFixed(2)} MB/s)`
@@ -31,6 +39,7 @@ class LibtorrentModule extends NativeModule<LibtorrentModuleEvents> {
         });
 
         torrent.on('done', () => {
+          console.log('[LibtorrentModule.web.ts] Torrent download DONE event fired!');
           this.emit('onTorrentProgress', { progress: 100, state: 'Finished' });
 
           // Trigger browser downloads for all files
@@ -52,11 +61,13 @@ class LibtorrentModule extends NativeModule<LibtorrentModuleEvents> {
         });
 
         torrent.on('error', (err: Error) => {
+          console.error('[LibtorrentModule.web.ts] Torrent error event:', err);
           reject(err);
         });
       });
 
       this.client.on('error', (err: Error) => {
+        console.error('[LibtorrentModule.web.ts] WebTorrent client error event:', err);
         reject(err);
       });
     });
