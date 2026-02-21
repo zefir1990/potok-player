@@ -24,7 +24,19 @@ class LibtorrentModule extends NativeModule<LibtorrentModuleEvents> {
       this.emit('onTorrentProgress', { progress: 0, state: 'Starting WebTorrent...' });
 
       console.log('[LibtorrentModule.web.ts] Calling webtorrent client.add()...');
-      this.client.add(magnetUri, (torrent: any) => {
+
+      // Inject default public WebSocket trackers for WebTorrent.
+      // This allows magnet links with only UDP trackers to still attempt 
+      // finding WebRTC peers on the web.
+      const opts = {
+        announce: [
+          'wss://tracker.btorrent.xyz',
+          'wss://tracker.openwebtorrent.com',
+          'wss://tracker.fastcast.nz'
+        ]
+      };
+
+      this.client.add(magnetUri, opts, (torrent: any) => {
         console.log(`[LibtorrentModule.web.ts] Torrent added. Name: ${torrent.name}, InfoHash: ${torrent.infoHash}`);
 
         torrent.on('warning', (err: Error) => {
