@@ -84,6 +84,19 @@ class LibtorrentModule extends NativeModule<LibtorrentModuleEvents> {
       });
     });
   }
+
+  async stop(): Promise<string> {
+    if (this.client) {
+      console.log('[LibtorrentModule.web.ts] Stopping WebTorrent and destroying client...');
+      this.client.destroy((err: Error | undefined) => {
+        if (err) console.error('Error destroying WebTorrent client:', err);
+      });
+      this.client = null; // nullify to allow re-initialization on next download
+
+      this.emit('onTorrentProgress', { progress: 0, state: 'Stopped' });
+    }
+    return 'Stopped';
+  }
 };
 
 export default registerWebModule(LibtorrentModule, 'LibtorrentModule');

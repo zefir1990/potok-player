@@ -18,5 +18,10 @@ public class LibtorrentModule: Module {
       }
       return "Started"
     }
+
+    AsyncFunction("stop") { () -> String in
+      // TODO: Implement native libtorrent cancellation for iOS
+      return "Stopped"
+    }
   }
 }

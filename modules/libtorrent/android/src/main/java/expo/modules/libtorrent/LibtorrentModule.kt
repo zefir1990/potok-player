@@ -53,5 +53,10 @@ class LibtorrentModule : Module() {
         throw Exception("Failed to start torrent: ${e.message}")
       }
     }
+
+    AsyncFunction("stop") {
+      // TODO: Implement actual session termination for Android
+      "Stopped"
+    }
   }
 }

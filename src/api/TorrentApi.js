@@ -18,6 +18,18 @@ class TorrentApi {
     }
 
     /**
+     * Stops the currently active torrent download.
+     * @returns {Promise<string>}
+     */
+    async stop() {
+        try {
+            return await LibtorrentModule.stop();
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    /**
      * Subscribes to torrent progress events.
      *
      * @param {function} callback A callback function receiving progress events `(event: { progress: number, state: string })`

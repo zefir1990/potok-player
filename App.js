@@ -6,6 +6,7 @@ import TorrentApi from './src/api/TorrentApi';
 export default function App() {
   const [status, setStatus] = useState('Idle');
   const [progress, setProgress] = useState(0);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const [magnetLink, setMagnetLink] = useState('magnet:?xt=urn:btih:08ada5a7a6183aae1e09d831df6748d566095a10&dn=Sintel&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com&ws=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2F&xs=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2Fsintel.torrent');
 
@@ -25,6 +26,7 @@ export default function App() {
   const handleDownload = async () => {
     try {
       setStatus('Starting...');
+      setIsDownloading(true);
 
       const savePath = FileSystem.documentDirectory + 'downloads';
       console.log('Saving to:', savePath);
@@ -32,8 +34,21 @@ export default function App() {
 
       await TorrentApi.download(magnetLink, savePath);
       console.log('[App.js] TorrentApi.download() promise resolved successfully!');
+      setIsDownloading(false);
     } catch (e) {
       setStatus('Error: ' + e.message);
+      setIsDownloading(false);
+    }
+  };
+
+  const handleStop = async () => {
+    try {
+      await TorrentApi.stop();
+      setIsDownloading(false);
+      setStatus('Stopped');
+    } catch (e) {
+      console.error(e);
+      setStatus('Error stopping: ' + e.message);
     }
   };
 
@@ -52,8 +67,13 @@ export default function App() {
           onChangeText={setMagnetLink}
           value={magnetLink}
           placeholder="Enter magnet link..."
+          editable={!isDownloading}
         />
-        <Button title="Start Download" onPress={handleDownload} />
+        {isDownloading ? (
+          <Button title="Stop Download" onPress={handleStop} color="red" />
+        ) : (
+          <Button title="Start Download" onPress={handleDownload} />
+        )}
       </View>
     </View>
   );
