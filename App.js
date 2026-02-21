@@ -1,19 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, Button } from 'react-native';
-import LibtorrentModule from './modules/libtorrent';
-import { NativeModulesProxy, EventEmitter } from 'expo-modules-core';
 import * as FileSystem from 'expo-file-system';
-
-// The module's typed events can be listened to via an EventEmitter
-const emitter = new EventEmitter(LibtorrentModule ?? NativeModulesProxy.Libtorrent);
+import TorrentApi from './src/api/TorrentApi';
 
 export default function App() {
   const [status, setStatus] = useState('Idle');
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    // Listen for torrent progress
-    const subscription = emitter.addListener('onTorrentProgress', (event) => {
+    // Listen for torrent progress using the new API abstraction
+    const subscription = TorrentApi.addProgressListener((event) => {
       setStatus(event.state);
       setProgress(event.progress);
     });
@@ -26,14 +22,14 @@ export default function App() {
   const handleDownload = async () => {
     try {
       setStatus('Starting...');
-      // A small test magnet link (e.g., Ubuntu or a public domain track)
-      // Here using Ubuntu 22.04 Desktop as a famous reliable test seed:
-      const magnet = 'magnet:?xt=urn:btih:209c8226b299b308beaf2b9cd3fb49212dbd13ec&dn=ubuntu-22.04.3-desktop-amd64.iso';
+      // A small test magnet link (e.g., Sintel) that includes wss trackers
+      // required for WebTorrent in the browser to find peers.
+      const magnet = 'magnet:?xt=urn:btih:08ada5a7a6183aae1e09d831df6748d566095a10&dn=Sintel&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com&ws=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2F&xs=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2Fsintel.torrent';
 
       const savePath = FileSystem.documentDirectory + 'downloads';
       console.log('Saving to:', savePath);
 
-      await LibtorrentModule.download(magnet, savePath);
+      await TorrentApi.download(magnet, savePath);
     } catch (e) {
       setStatus('Error: ' + e.message);
     }
