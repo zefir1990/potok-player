@@ -39,6 +39,15 @@ class LibtorrentModule extends NativeModule<LibtorrentModuleEvents> {
       this.client.add(magnetUri, opts, (torrent: any) => {
         console.log(`[LibtorrentModule.web.ts] Torrent added. Name: ${torrent.name}, InfoHash: ${torrent.infoHash}`);
 
+        const getFiles = () => {
+          if (!torrent.files) return [];
+          return torrent.files.map((f: any) => ({
+            name: f.name,
+            length: f.length,
+            downloaded: f.downloaded
+          }));
+        };
+
         torrent.on('warning', (err: Error) => {
           console.warn('[LibtorrentModule.web.ts] Torrent warning:', err);
         });
@@ -46,13 +55,14 @@ class LibtorrentModule extends NativeModule<LibtorrentModuleEvents> {
           console.log(`[LibtorrentModule.web.ts] Downloaded chunk of ${bytes} bytes. Total Progress: ${(torrent.progress * 100).toFixed(2)}%, Speed: ${(torrent.downloadSpeed / 1024 / 1024).toFixed(2)} MB/s`);
           this.emit('onTorrentProgress', {
             progress: torrent.progress * 100,
-            state: `Downloading (${(torrent.downloadSpeed / 1024 / 1024).toFixed(2)} MB/s)`
+            state: `Downloading (${(torrent.downloadSpeed / 1024 / 1024).toFixed(2)} MB/s)`,
+            files: getFiles()
           });
         });
 
         torrent.on('done', () => {
           console.log('[LibtorrentModule.web.ts] Torrent download DONE event fired!');
-          this.emit('onTorrentProgress', { progress: 100, state: 'Finished' });
+          this.emit('onTorrentProgress', { progress: 100, state: 'Finished', files: getFiles() });
 
           // Trigger browser downloads for all files
           torrent.files.forEach((file: any) => {

@@ -7,6 +7,7 @@ export default function App() {
   const [status, setStatus] = useState('Idle');
   const [progress, setProgress] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [files, setFiles] = useState([]);
 
   const [magnetLink, setMagnetLink] = useState('magnet:?xt=urn:btih:08ada5a7a6183aae1e09d831df6748d566095a10&dn=Sintel&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com&ws=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2F&xs=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2Fsintel.torrent');
 
@@ -16,6 +17,9 @@ export default function App() {
       console.log(`[App.js] Torrent Progress Event: State -> ${event.state}, Progress -> ${event.progress.toFixed(2)}%`);
       setStatus(event.state);
       setProgress(event.progress);
+      if (event.files) {
+        setFiles(event.files);
+      }
     });
 
     return () => {
@@ -46,6 +50,7 @@ export default function App() {
       await TorrentApi.stop();
       setIsDownloading(false);
       setStatus('Stopped');
+      setFiles([]);
     } catch (e) {
       console.error(e);
       setStatus('Error stopping: ' + e.message);
@@ -75,6 +80,17 @@ export default function App() {
           <Button title="Start Download" onPress={handleDownload} />
         )}
       </View>
+
+      {files.length > 0 && (
+        <View style={styles.filesContainer}>
+          <Text style={styles.filesTitle}>Torrent Contents:</Text>
+          {files.map((file, i) => (
+            <Text key={i} style={styles.fileItem}>
+              📄 {file.name} - {(file.downloaded / 1024 / 1024).toFixed(2)} MB / {(file.length / 1024 / 1024).toFixed(2)} MB
+            </Text>
+          ))}
+        </View>
+      )}
     </View>
   );
 }
@@ -105,5 +121,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderColor: '#ccc',
     borderRadius: 4
+  },
+  filesContainer: {
+    marginTop: 20,
+    padding: 10,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd'
+  },
+  filesTitle: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginBottom: 8,
+  },
+  fileItem: {
+    fontSize: 14,
+    marginBottom: 4,
+    color: '#333'
   }
 });
